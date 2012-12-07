@@ -1,0 +1,30 @@
+- note: requires using Heroku, node.js, MongoDB, OpenID
+
+- fork https://github.com/dglittle/TheAfterImage
+
+- create a folder called "humanscript"
+- create a file in there with a unique filename and a ".txt" extension, like "1.txt"
+- copy these instructions into that file
+
+- move the directory "screenshots" into the "humanscript" directory
+- rename the directory to "output"
+
+- make "/index.html" behave as follows
+    - note: use MongoDB for the database parts of this
+    - if user is not logged in, display a "login" link
+    - if login link is clicked, allow user to login using OpenID
+    - if user is logged in,
+        - show all the information about the user (which is probably just an OpenID url),
+        - and show a "logout" link
+        - if the "logout" link is clicked, log the user out
+
+- run the app on Heroku as a free app
+- take a screenshots of it running on Heroku:
+    - show login link
+    - show OpenID login page
+    - show page when a user is logged in
+- put screenshot in the "humanscript/output" directory
+
+- push everything to github
+- submit a pull request to the original repository
+- reply to this thread saying "done" 

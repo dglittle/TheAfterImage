@@ -96,7 +96,7 @@ app.post('/login.html', function(req, res) {
 
 app.get('/verify', function(req, res){
   relyingParty.verifyAssertion(req, function(err, result){
-    if (result.authenticated) {
+    if (!err && result.authenticated) {
       req.session.user_id = result.claimedIdentifier;
       User.findOne({OpenId: result.claimedIdentifier}, function(err, user) {
         if (user && !err) {
@@ -114,6 +114,7 @@ app.get('/verify', function(req, res){
         }
       });
     } else {
+      console.log(err);
       res.redirect('/login.html');
     }
   });

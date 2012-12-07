@@ -1,9 +1,12 @@
 {
-  "name": "hello-world",
-  "description": "hello world test app",
-  "version": "0.0.1",
+  "name": "Afterimage",
+  "description": "afterimage",
+  "version": "0.0.2",
   "private": true,
   "dependencies": {
-    "express": "3.x"
+    "express": "3.x",
+    "ejs": "*",
+    "connect-mongodb": "*",
+    "openid" : "*"
   }
 }

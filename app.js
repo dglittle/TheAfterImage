@@ -59,7 +59,7 @@ function apiCall(req, res) {
   var q = JSON.parse(qStr);
   var a = q.a;
   var b = q.b;
-  res.send(JSON.stringify({answer: a + b}));
+  res.json({answer: a + b}, 200);
 }
 
 app.post('/api', apiCall);

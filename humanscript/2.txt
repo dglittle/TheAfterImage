@@ -1,0 +1,26 @@
+ - note: requires using Heroku, node.js
+
+- fork https://github.com/dglittle/TheAfterImage
+
+- put these instructions in a new file in the "humanscript" directory
+
+- make the following work:
+    - imagine an incoming request for "/api?q={a:5,b:7}"
+    - let c = q.a + q.b
+    - return {answer:c} as JSON
+- make it also work if the request is a POST request, and "q" is a POST parameter
+
+- test it
+    - put ".../api?q={a:2,b:14}" in address bar
+    - take screenshot of result
+    - put screenshot in "humanscript/output"
+    - go to http://glittle.org/utils/PostUtil/
+    - put the url to ".../api" in "url:"
+    - type q={a:3,b:15} into "params:"
+    - press "post"
+    - press "submit"
+    - take screenshot
+    - put screenshot in "humanscript/output"
+
+- push to github
+- make pull request to original repository

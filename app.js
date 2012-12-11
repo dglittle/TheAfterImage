@@ -54,6 +54,17 @@ function loadUser(req, res, next) {
   }
 }
 
+function apiCall(req, res) {
+  var qStr = req.param('q').replace(/\b([a-zA-Z]+)\b/g, '"$1"'); // Convert query str to json
+  var q = JSON.parse(qStr);
+  var a = q.a;
+  var b = q.b;
+  res.send(JSON.stringify({answer: a + b}));
+}
+
+app.post('/api', apiCall);
+app.get('/api', apiCall);
+
 app.get('/', function(req, res){
   res.redirect('/index.html');
 });

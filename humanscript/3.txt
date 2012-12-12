@@ -1,0 +1,28 @@
+// part 0
+
+- if you have time to do this task right now, reply-all to this message saying "got it" (only the first person to say "got it" should do it)
+
+- when you log time, use the subject line of this task as the message
+
+// part 1
+
+- fork https://github.com/dglittle/TheAfterImage
+
+- put these instructions in a new file in the "humanscript" directory
+
+// part 2
+
+- open app.js
+- change
+    var qStr = req.param('q').replace(/\b([a-zA-Z]+)\b/g, '"$1"'); // Convert query str to json
+    var q = JSON.parse(qStr);
+    to:
+    var q = JSON.parse(req.param('q'));
+
+// part 4
+
+- commit and push to github
+- make pull request to original repository
+- respond to this thread saying "done"
+
+-- 

@@ -55,8 +55,7 @@ function loadUser(req, res, next) {
 }
 
 function apiCall(req, res) {
-  var qStr = req.param('q').replace(/\b([a-zA-Z]+)\b/g, '"$1"'); // Convert query str to json
-  var q = JSON.parse(qStr);
+  var q = JSON.parse(req.param('q'));
   var a = q.a;
   var b = q.b;
   res.json({answer: a + b}, 200);

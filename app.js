@@ -2,6 +2,7 @@ var express = require('express');
 var mongoStore = require('connect-mongodb');
 var openid = require('openid');
 var User = require('./db.js').User;
+var Task = require('./db.js').Task;
 
 var base_url = 'http://hidden-fjord-4892.herokuapp.com'; // aplication url
 var mongo_url = process.env.MONGOHQ_URL || 'mongodb://localhost/test';
@@ -56,9 +57,29 @@ function loadUser(req, res, next) {
 
 function apiCall(req, res) {
   var q = JSON.parse(req.param('q'));
-  var a = q.a;
-  var b = q.b;
-  res.json({answer: a + b}, 200);
+  for (var i in q) {
+      var c = q[i];
+      switch (c.command) {
+        case 'add task':
+          Task.create({title: c.title}, function(err, result){
+              if (err) 
+                  res.json(500, { error: err });
+              else
+                  res.json(200, { mesage: 'Success' });
+          });
+          break;
+        case 'get tasks':
+          Task.find({}, function(err, result){
+              if (err) 
+                  res.json(500, { error: err });
+              else
+                  res.json(200, result);
+          });
+          break;
+        default:
+          res.json(400, { error: 'Invalid request to API' });
+      }
+  }
 }
 
 app.post('/api', apiCall);

@@ -1,0 +1,32 @@
+Task EOJR: add ability to add tasks to TheAfterImage
+
+// part 1
+
+- fork https://github.com/dglittle/TheAfterImage
+
+- put these instructions, and the subject line of this message, in a new file in the "humanscript" directory (create this directory if it doesn't exist)
+
+// part 2
+
+- open app.js
+- in apiCall
+    - assume 'q' is an array
+    - for each c in q:
+        if c.command == 'add task'
+            add a 'Task' object to the database with title c.title
+        if c.command == 'get tasks'
+            return JSON encoding of all Task objects in database
+
+- test this
+    - run it somewhere
+    - load .../api?q=[{"command":"add task","title":"task 1"}]
+    - load .../api?q=[{"command":"add task","title":"task 2"}]
+    - load .../api?q=[{"command":"get tasks"}]
+    - take screenshot
+    - put screenshot in "humanscript/output"
+
+// last part
+
+- commit and push to github
+- make pull request to original repository
+- respond to this thread saying "done"

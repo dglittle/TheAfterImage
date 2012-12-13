@@ -3,6 +3,7 @@ var mongoStore = require('connect-mongodb');
 var openid = require('openid');
 var User = require('./db.js').User;
 var Task = require('./db.js').Task;
+var Message = require('./db.js').Message;
 
 var base_url = 'http://hidden-fjord-4892.herokuapp.com'; // aplication url
 var mongo_url = process.env.MONGOHQ_URL || 'mongodb://localhost/test';
@@ -12,8 +13,7 @@ var relyingParty = new openid.RelyingParty(base_url + '/verify',
                                            null,
                                            false,
                                            false,
-                                           []
-                                          );
+                                           []);
 
 var app = express();
 
@@ -55,35 +55,52 @@ function loadUser(req, res, next) {
   }
 }
 
-function apiCall(req, res) {
-  var q = JSON.parse(req.param('q'));
-  for (var i in q) {
-      var c = q[i];
-      switch (c.command) {
-        case 'add task':
-          Task.create({title: c.title}, function(err, result){
-              if (err) 
-                  res.json(500, { error: err });
-              else
-                  res.json(200, { mesage: 'Success' });
-          });
-          break;
-        case 'get tasks':
-          Task.find({}, function(err, result){
-              if (err) 
-                  res.json(500, { error: err });
-              else
-                  res.json(200, result);
-          });
-          break;
-        default:
-          res.json(400, { error: 'Invalid request to API' });
-      }
+function callbackCreate(res) {
+  return function(err, result) { 
+      if (err) 
+          res.json(500, { error: err });
+      else
+          res.json(200, { mesage: 'Success' });
   }
 }
 
-app.post('/api', apiCall);
-app.get('/api', apiCall);
+function callbackShow(res) {
+  return function(err, result) { 
+      if (err) 
+          res.json(500, { error: err });
+      else
+          res.json(200, result);
+  }
+}
+
+function apiCall(req, res) {
+  var c = JSON.parse(req.param('q'));
+  switch (c.command) {
+    case 'add task':
+      if (req.currentUser)
+          Task.create({ title: c.title, user: req.currentUser.OpenId }, callbackCreate(res));
+      else
+          res.json(403, { error: 'Must be logged in to use this command' });
+      break;
+    case 'add message':
+      if (req.currentUser)
+          Message.create({ text: c.text, task: c.task, user: req.currentUser.OpenId }, callbackCreate(res));
+      else
+          res.json(403, { error: 'Must be logged in to use this command' });
+      break;
+    case 'get tasks':
+      Task.find({}, callbackShow(res));
+      break;
+    case 'get messages':
+      Message.find({ task: c.task }, callbackShow(res));
+      break;
+    default:
+      res.json(400, { error: 'Invalid request to API' });
+  }
+}
+
+app.post('/api', loadUser, apiCall);
+app.get('/api', loadUser, apiCall);
 
 app.get('/', function(req, res){
   res.redirect('/index.html');

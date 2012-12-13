@@ -1,0 +1,43 @@
+Task BYWV: The After Image, adding messages
+
+// part 1
+
+- fork https://github.com/dglittle/TheAfterImage
+
+- put these instructions, and the subject line of this message, in a new file in the "humanscript" directory (create this directory if it doesn't exist)
+
+// part 2
+
+- open app.js
+- look at apiCall
+- note that it assumes q is an array of "commands"
+- assume instead that q is a single command object, and remove the for loop
+
+- modify 'add task' command so that it stores a reference to the current user in a field of the Task object called 'user'
+- if no user is logged in, this command should fail
+
+- add an 'add message' command
+    - it should create a Message object with
+        - text of message
+        - reference to task (this should be a parameter)
+        - reference to user (person sending the message, not a parameter)
+        - command should fail if no user is logged in
+
+- add a 'get messages' command, which takes parameter 'task'
+    - returns json array of all messages for the given task
+
+- test this
+    - run it somewhere
+    - log in
+    - create a task
+    - create a message
+    - invoke 'get messages'
+    - take screenshot, including address bar
+    - take screenshot
+    - put screenshot in "humanscript/output"
+
+// last part
+
+- commit and push to github
+- make pull request to original repository
+- respond to this thread saying "done"

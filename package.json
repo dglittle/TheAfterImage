@@ -7,6 +7,7 @@
     "express": "3.x",
     "ejs": "*",
     "connect-mongodb": "*",
+    "mongous": "*",
     "openid" : "0.4.2"
   },
   "engines": {

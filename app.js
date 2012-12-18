@@ -1,12 +1,17 @@
 var express = require('express');
 var mongoStore = require('connect-mongodb');
 var openid = require('openid');
-var User = require('./db.js').User;
-var Task = require('./db.js').Task;
-var Message = require('./db.js').Message;
+var url = require('url');
+var $ = require('mongous').Mongous;
+var ObjectID = require('mongous/bson/bson.js').ObjectID;
 
 var base_url = 'http://hidden-fjord-4892.herokuapp.com'; // aplication url
-var mongo_url = process.env.MONGOHQ_URL || 'mongodb://localhost/test';
+
+var mongo_url = url.parse(process.env.MONGOHQ_URL || 'mongodb://localhost/test');
+var db = mongo_url.pathname.split('/')[1];
+var mongo_port = mongo_url.port || 27017;
+var mongo_host = mongo_url.hostname;
+
 var port  = process.env.PORT || 3000;
 
 var relyingParty = new openid.RelyingParty(base_url + '/verify', 
@@ -14,6 +19,14 @@ var relyingParty = new openid.RelyingParty(base_url + '/verify',
                                            false,
                                            false,
                                            []);
+
+$().open(mongo_host, mongo_port);
+if (mongo_url.auth) {
+    var mongo_auth = mongo_url.auth.split(':');
+    var mongo_user = mongo_auth[0];
+    var mongo_pass = mongo_auth[1];
+}
+$(db + '.$cmd').auth(mongo_user, mongo_pass, function(r){});
 
 var app = express();
 
@@ -40,82 +53,66 @@ app.configure('production', function(){
     app.use(express.errorHandler());
 });
 
-function loadUser(req, res, next) {
-  if (req.session.user_id) {
-    User.findOne({OpenId: req.session.user_id}, function(err, user) {
-      if (user && !err) {
-        req.currentUser = user;
-        next();
-      } else {
-        next();
-      }
-    });
-  } else {
-    next();
-  }
-}
-
-function callbackCreate(res) {
-  return function(err, result) { 
-      if (err) 
-          res.json(500, { error: err });
-      else
-          res.json(200, { mesage: 'Success' });
-  }
-}
 
 function callbackShow(res) {
-  return function(err, result) { 
-      if (err) 
-          res.json(500, { error: err });
+  return function(result) { 
+      if (!result.documents) 
+          res.json(500, { error: result.error_message() });
       else
-          res.json(200, result);
+          res.json(200, result.documents);
   }
 }
 
 function apiCall(req, res) {
   var c = JSON.parse(req.param('q'));
+  var currentUser = req.session.currentUser;
   switch (c.command) {
     case 'add task':
-      if (req.currentUser)
-          Task.create({ title: c.title, user: req.currentUser.OpenId }, callbackCreate(res));
-      else
+      if (currentUser) {
+          $(db + '.Task').insert({ title: c.title, user: ObjectID(currentUser._id) });
+          res.json(200, { message: 'Success' });
+      } else
           res.json(403, { error: 'Must be logged in to use this command' });
       break;
     case 'add message':
-      if (req.currentUser)
-          Message.create({ text: c.text, task: c.task, user: req.currentUser.OpenId }, callbackCreate(res));
-      else
+      if (currentUser) {
+          if (!c.task) {
+              res.json(400, { error: 'You need to specify the task for the message' });
+              break
+          }
+          $(db + '.Message').insert({ text: c.text, task: ObjectID(c.task), user: ObjectID(currentUser._id) });
+          res.json(200, { message: 'Success' });
+      } else
           res.json(403, { error: 'Must be logged in to use this command' });
       break;
     case 'get tasks':
-      Task.find({}, callbackShow(res));
+      $(db + '.Task').find({}, callbackShow(res));
       break;
     case 'get messages':
-      Message.find({ task: c.task }, callbackShow(res));
+      $(db + '.Message').find({ task: new ObjectID(c.task) }, callbackShow(res));
       break;
     default:
       res.json(400, { error: 'Invalid request to API' });
   }
 }
 
-app.post('/api', loadUser, apiCall);
-app.get('/api', loadUser, apiCall);
+app.post('/api', apiCall);
+app.get('/api', apiCall);
 
 app.get('/', function(req, res){
   res.redirect('/index.html');
 });
 
-app.get('/index.html', loadUser, function(req, res){
-  if (req.currentUser) {
-    res.render('userinfo.ejs', { user: req.currentUser });
+app.get('/index.html', function(req, res){
+  if (req.session.currentUser) {
+    res.render('userinfo.ejs', { user: req.session.currentUser });
   } else {
     res.render('index.ejs');
   }
 });
 
-app.get('/login.html', loadUser, function(req, res) {
-  if (req.currentUser) {
+app.get('/login.html', function(req, res) {
+  if (req.session.currentUser) {
     res.redirect('/');
   } else {
     res.render('login.ejs');
@@ -145,20 +142,16 @@ app.post('/login.html', function(req, res) {
 app.get('/verify', function(req, res){
   relyingParty.verifyAssertion(req, function(err, result){
     if (!err && result.authenticated) {
-      req.session.user_id = result.claimedIdentifier;
-      User.findOne({OpenId: result.claimedIdentifier}, function(err, user) {
-        if (user && !err) {
-          req.currentUser = user;
+      $(db + '.User').find({OpenId: result.claimedIdentifier}, function(reply) {
+        var user = reply.documents[0];
+        if (user) {
+          req.session.currentUser = user;
           res.redirect('/');
         } else {
-          User.create({OpenId: result.claimedIdentifier}, function(err, user){
-            console.log('here');
-            if (err)
-              console.log(err);
-            else
-              req.currentUser = user;
-            res.redirect('/');
-          });
+          user = { _id: new ObjectID(), OpenId: result.claimedIdentifier };
+          req.session.currentUser = user;
+          $(db + '.User').insert(user);
+          res.redirect('/');
         }
       });
     } else {

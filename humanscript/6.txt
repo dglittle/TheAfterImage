@@ -1,0 +1,59 @@
+ Task NTQT: TheAfterImage change mongoose to mongous (go schema-less)
+
+// part 0
+
+- if you have time to do this task right now, reply-all to this message saying "got it" (only the first person to say "got it" should do it)
+
+- when you log time, use the subject line of this task as the message
+
+// part 1
+
+- fork https://github.com/dglittle/TheAfterImage
+
+- put these instructions, and the subject line of this message, in a new file in the "humanscript" directory (create this directory if it doesn't exist)
+
+// part 2
+
+- remove mongoose module
+- add mongous module
+- remove db.js
+- in app.js...
+- remove
+    var User = require('./db.js').User;
+    var Task = require('./db.js').Task;
+    var Message = require('./db.js').Message;
+- somewhere add "ObjectID = require("mongous/bson/bson.js").ObjectID"    
+- in apiCall
+    - at Task.create...
+        - do this with mongous (use "Task" collection)
+        - instead of setting "user : req.currentUser.OpenId"
+            set "user : req.currentUser._id"
+            (this may require using the ObjectId constructor, not sure)
+    - at Message.create...
+        - do this with mongous (use "Message" collection)
+        - assume that c.task will be an ObjectId represented as a hex-string,
+            so it will need to be converted to a real ObjectId
+        - do the same thing with user as above
+    - at Task.find...
+        - do this with mongous
+    - at Message.find...
+        - do this with mongous
+- at app.get('/verify')
+    - do the stuff with "User" using mongous (use "User" collection)
+
+- test this
+    - run it somewhere
+    - log in
+    - create a task
+    - list tasks
+    - remember task _id of a task
+    - create a message
+    - invoke 'get messages'
+    - take screenshot, including address bar
+    - put screenshot in "humanscript/output"
+
+// last part
+
+- commit and push to github
+- make pull request to original repository
+- respond to this thread saying "done"
